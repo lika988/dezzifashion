@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DEZZI | Official Online Boutique</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dezzi-black': '#000000',
+                        'dezzi-white': '#ffffff',
+                        'dezzi-gold': '#C5A059',
+                        'dezzi-gray': '#f5f5f5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        logo: ['Cinzel', 'serif'],
+                    },
+                    letterSpacing: {
+                        widest: '.2em',
+                        mega: '.3em',
+                    },
+                    height: {
+                        'screen-dvh': '100dvh',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Core Styles */
+        body { background-color: #ffffff; color: #000000; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
+
+        /* Animations */
+        .reveal-up { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-up.active { opacity: 1; transform: translateY(0); }
+
+        .hero-img {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: top center;
+            opacity: 0; transform: scale(1.1);
+            transition: opacity 2.0s ease-in-out, transform 10s ease-out;
+        }
+        .hero-img.active { opacity: 1; transform: scale(1); }
+
+        .btn-magnetic { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .btn-magnetic:active { transform: scale(0.95); }
+
+        /* Cart Visibility Animation */
+        #nav-cart-btn {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #nav-cart-btn.hidden-btn {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            display: block; /* Keep in layout but hidden */
+        }
+        #nav-cart-btn.visible-btn {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        #loader {
+            position: fixed; inset: 0; background: #fff; z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <h1 class="font-logo text-4xl md:text-6xl tracking-widest animate-pulse">DEZZI</h1>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 w-full z-40 transition-all duration-500 bg-transparent text-white hover:bg-white hover:text-black hover:shadow-sm">
+        <div class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <button class="lg:hidden p-2" onclick="toggleMobileMenu()"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            
+            <div class="hidden lg:flex space-x-8 text-[11px] font-bold uppercase tracking-widest">
+                <a href="#" onclick="customScrollTo('collection'); return false;" class="hover:text-dezzi-gold transition-colors">New Arrivals</a>
+                <a href="#" onclick="customScrollTo('collection'); return false;" class="hover:text-dezzi-gold transition-colors">Dresses</a>
+                <a href="#" onclick="customScrollTo('editorial'); return false;" class="hover:text-dezzi-gold transition-colors">Maison</a>
+            </div>
+            
+            <a href="#" class="text-3xl font-logo font-bold tracking-widest absolute left-1/2 transform -translate-x-1/2">DEZZI</a>
+            
+            <div class="flex items-center space-x-6">
+                <button class="hidden lg:block text-[11px] font-bold uppercase tracking-widest hover:text-dezzi-gold">Search</button>
+                
+                <!-- Cart Button (Initially Hidden) -->
+                <button id="nav-cart-btn" class="hover:text-dezzi-gold transition-colors hidden-btn" onclick="toggleCart()">
+                    <span class="lg:hidden relative">
+                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-dezzi-gold rounded-full"></span>
+                    </span>
+                    <span class="hidden lg:block text-[11px] font-bold uppercase tracking-widest">Bag (<span id="cart-count-desktop">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-40 transform -translate-x-full transition-transform duration-500 flex flex-col pt-24 px-8">
+        <button class="absolute top-6 right-6 p-2" onclick="toggleMobileMenu()"><i data-lucide="x" class="w-8 h-8"></i></button>
+        <div class="flex flex-col space-y-6 font-serif text-3xl text-black">
+            <a href="#" onclick="toggleMobileMenu(); setTimeout(() => customScrollTo('collection'), 300); return false;" class="border-b border-gray-100 pb-4">New Arrivals</a>
+            <a href="#" onclick="toggleMobileMenu(); setTimeout(() => customScrollTo('collection'), 300); return false;" class="border-b border-gray-100 pb-4">Dresses</a>
+            <a href="#" onclick="toggleMobileMenu(); setTimeout(() => customScrollTo('editorial'), 300); return false;" class="border-b border-gray-100 pb-4">Maison</a>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel z-50 transform translate-x-full transition-transform duration-500 flex flex-col shadow-2xl">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+            <h2 class="font-serif text-xl">Shopping Bag</h2>
+            <button onclick="toggleCart()" class="p-2 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        
+        <div id="cart-items-container" class="flex-grow overflow-y-auto p-6 space-y-6">
+            <!-- Items injected here -->
+        </div>
+
+        <div class="p-6 border-t border-gray-100 bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-sm text-gray-500 uppercase tracking-widest">Subtotal</span>
+                <span id="cart-total" class="font-serif text-xl">$0.00</span>
+            </div>
+            <button class="w-full bg-black text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-dezzi-gold transition-colors btn-magnetic">Checkout</button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="relative h-screen-dvh w-full overflow-hidden bg-black text-white">
+        <!-- Desktop Slider (Visible on md and up) -->
+        <div id="desktop-slider" class="absolute inset-0 hidden md:block"></div>
+        
+        <!-- Mobile Video Background (Visible only on mobile) -->
+        <div class="absolute inset-0 md:hidden pointer-events-none">
+            <!-- Added muted=true and loop=true to URL to ensure autoplay works on smartphones -->
+            <iframe 
+                src="https://imagekit.io/player/embed/p78ewpzv2/DEZZI%20FASHION/grok-video-bccf80fd-45aa-4a7e-924a-229c543e43b6%20(1).mp4?controls=false&autoplay=true&loop=true&muted=true&background=%23000000&updatedAt=1765393566273" 
+                class="w-full h-full object-cover scale-110" 
+                title="DEZZI Campaign" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen">
+            </iframe>
+        </div>
+
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-10"></div>
+        
+        <!-- Content -->
+        <div class="absolute inset-0 flex flex-col justify-end pb-20 items-center text-center z-20 pointer-events-none">
+            <div class="pointer-events-auto reveal-up">
+                <h2 class="text-xs md:text-sm font-bold uppercase tracking-mega mb-4">Spring Summer 2025</h2>
+                <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-8 leading-tight">Golden Hour</h1>
+                <div class="flex space-x-4 justify-center">
+                    <a href="#" onclick="customScrollTo('collection'); return false;" class="bg-white text-black px-8 py-3 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-dezzi-gold hover:text-white transition-colors duration-300 btn-magnetic">Shop Collection</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Showcase -->
+    <section id="collection" class="py-24 bg-white">
+        <div class="container mx-auto px-6 mb-16 flex justify-between items-end reveal-up">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-dezzi-gold block mb-2">Exclusive</span>
+                <h2 class="font-logo text-3xl md:text-5xl text-black">The Collection</h2>
+            </div>
+            <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors">View All</a>
+        </div>
+
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20">
+            <!-- Product 1 -->
+            <div class="group cursor-pointer reveal-up" onclick="openProductModal('p1')">
+                <div class="relative aspect-[3/4] mb-6 bg-gray-50 overflow-hidden">
+                    <img src="https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_zbd9puzbd9puzbd9.png" class="absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 group-hover:opacity-0" alt="Lace Gown Front">
+                    <img src="https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_ga9pkfga9pkfga9p.png" class="absolute inset-0 w-full h-full object-cover object-top opacity-0 transition-opacity duration-700 group-hover:opacity-100" alt="Lace Gown Back">
+                    <button class="absolute bottom-0 w-full bg-white text-black py-4 text-[10px] font-bold uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-500">Quick Shop</button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-2xl text-black">The Lace Illusion Gown</h3>
+                        <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Dusty Pink / Formal</p>
+                    </div>
+                    <p class="text-lg font-medium">$4,200</p>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="group cursor-pointer reveal-up delay-100" onclick="openProductModal('p2')">
+                <div class="relative aspect-[3/4] mb-6 bg-gray-50 overflow-hidden">
+                    <img src="https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_how82hhow82hhow8.png" class="absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 group-hover:opacity-0" alt="Satin Gown Front">
+                    <img src="https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_yq738xyq738xyq73.png" class="absolute inset-0 w-full h-full object-cover object-top opacity-0 transition-opacity duration-700 group-hover:opacity-100" alt="Satin Gown Back">
+                    <button class="absolute bottom-0 w-full bg-white text-black py-4 text-[10px] font-bold uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-500">Quick Shop</button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-2xl text-black">Architectural Satin Gown</h3>
+                        <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Ivory White / Bridal</p>
+                    </div>
+                    <p class="text-lg font-medium">$8,900</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Editorial -->
+    <section id="editorial" class="py-24 bg-dezzi-gray">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center gap-16">
+                <div class="w-full md:w-1/2 reveal-up">
+                    <img src="https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_a49y8za49y8za49y.png" class="w-full h-auto shadow-2xl grayscale hover:grayscale-0 transition-all duration-700" alt="Editorial">
+                </div>
+                <div class="w-full md:w-1/2 reveal-up delay-100">
+                    <span class="text-dezzi-gold text-xs font-bold uppercase tracking-widest mb-4 block">The Campaign</span>
+                    <h2 class="font-serif text-4xl md:text-5xl mb-6">Italian Craftsmanship</h2>
+                    <p class="text-gray-600 leading-relaxed mb-8 font-light">Every piece is a testament to the heritage of Milanese tailoring. We source our fabrics from the oldest mills in Como and construct our garments with an obsessive attention to detail that honors the past while embracing the future.</p>
+                    <a href="#" class="inline-block border-b border-black pb-1 text-xs font-bold uppercase tracking-widest hover:text-dezzi-gold hover:border-dezzi-gold transition-colors">Read Our Story</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white pt-20 pb-10">
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div class="col-span-1 md:col-span-2">
+                <h2 class="font-logo text-3xl mb-8 tracking-widest">DEZZI</h2>
+                <div class="flex space-x-6 text-xs text-gray-400 font-bold uppercase tracking-widest">
+                    <a href="#" class="hover:text-white transition-colors">Instagram</a>
+                    <a href="#" class="hover:text-white transition-colors">Facebook</a>
+                    <a href="#" class="hover:text-white transition-colors">Youtube</a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6">Client Services</h4>
+                <ul class="space-y-4 text-sm text-gray-300 font-light">
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">FAQ</a></li>
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">Track Order</a></li>
+                </ul>
+            </div>
+            <div>
+                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6">Company</h4>
+                 <ul class="space-y-4 text-sm text-gray-300 font-light">
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">Careers</a></li>
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">Sustainability</a></li>
+                    <li><a href="#" class="hover:text-dezzi-gold transition-colors">Legal</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container mx-auto px-6 pt-8 border-t border-gray-800 text-center text-[10px] text-gray-600 uppercase tracking-widest flex flex-col md:flex-row justify-between">
+            <p>&copy; 2025 DEZZI S.p.A. All rights reserved.</p>
+            <div class="space-x-4 mt-4 md:mt-0"><a href="#">Privacy Policy</a></div>
+        </div>
+    </footer>
+
+    <!-- PRODUCT MODAL -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-white md:bg-black/60 md:backdrop-blur-sm transition-opacity" onclick="closeProductModal()"></div>
+        
+        <div class="absolute inset-0 md:inset-12 bg-white md:rounded-xl shadow-2xl flex flex-col md:flex-row animate-[fadeIn_0.3s_ease-out] overflow-hidden">
+            <!-- Close Button -->
+            <button class="absolute top-4 right-4 z-50 p-3 bg-white/80 backdrop-blur-md rounded-full shadow-sm md:shadow-none md:bg-transparent" onclick="closeProductModal()">
+                <i data-lucide="x" class="w-6 h-6 text-black"></i>
+            </button>
+            
+            <!-- Image Section -->
+            <div class="w-full md:w-1/2 h-[60dvh] md:h-full bg-gray-50 relative group">
+                <img id="modal-img" src="" class="w-full h-full object-cover object-top transition-all duration-500" alt="Product">
+                <button class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow-lg active:scale-95 transition-transform" onclick="prevImage()">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <button class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow-lg active:scale-95 transition-transform" onclick="nextImage()">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+                <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2" id="modal-dots"></div>
+            </div>
+
+            <!-- Details Section -->
+            <div class="w-full md:w-1/2 h-[40dvh] md:h-full flex flex-col bg-white relative">
+                <div class="flex-grow overflow-y-auto p-6 md:p-16">
+                    <span class="text-dezzi-gold text-[10px] font-bold uppercase tracking-widest mb-2 block">New Season</span>
+                    <h2 id="modal-title" class="font-serif text-2xl md:text-5xl mb-2 leading-tight text-black"></h2>
+                    <p id="modal-price" class="text-xl font-medium mb-4 font-serif text-gray-900"></p>
+                    <p id="modal-desc" class="text-gray-600 font-light leading-relaxed text-sm md:text-base mb-6"></p>
+                    
+                    <div class="mb-6">
+                        <span class="text-[10px] font-bold uppercase tracking-widest mb-3 block text-gray-400">Select Size</span>
+                        <div class="flex space-x-4">
+                            <button class="w-10 h-10 md:w-12 md:h-12 border border-gray-200 hover:border-black flex items-center justify-center text-xs transition-colors rounded-full focus:bg-black focus:text-white focus:border-black">36</button>
+                            <button class="w-10 h-10 md:w-12 md:h-12 border border-gray-200 hover:border-black flex items-center justify-center text-xs transition-colors rounded-full focus:bg-black focus:text-white focus:border-black">38</button>
+                            <button class="w-10 h-10 md:w-12 md:h-12 border border-gray-200 hover:border-black flex items-center justify-center text-xs transition-colors rounded-full focus:bg-black focus:text-white focus:border-black">40</button>
+                            <button class="w-10 h-10 md:w-12 md:h-12 border border-gray-200 hover:border-black flex items-center justify-center text-xs transition-colors rounded-full focus:bg-black focus:text-white focus:border-black">42</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky Bottom Action Bar -->
+                <div class="p-4 md:p-12 border-t border-gray-100 bg-white z-20">
+                    <button onclick="addToBag()" class="w-full bg-black text-white py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-dezzi-gold transition-colors btn-magnetic rounded-sm shadow-xl">
+                        Add to Bag
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        /* SLIDER LOGIC */
+        const desktopHeroImages = [
+            "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_a49y8za49y8za49y.png",
+            "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_how82hhow82hhow8.png"
+        ];
+        
+        // Removed mobileHeroImages array as we are using video
+
+        function initSlider(containerId, images) {
+            const container = document.getElementById(containerId);
+            images.forEach((src, i) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = `hero-img ${i === 0 ? 'active' : ''}`;
+                container.appendChild(img);
+            });
+            let currentSlide = 0;
+            const slides = container.children;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 6000);
+        }
+
+        /* CUSTOM SMOOTH SCROLL */
+        function customScrollTo(targetId) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            const startPosition = window.scrollY;
+            const targetPosition = target.getBoundingClientRect().top + window.scrollY;
+            const distance = targetPosition - startPosition;
+            const duration = 1500; // 1.5s duration
+            let start = null;
+
+            function step(timestamp) {
+                if (!start) start = timestamp;
+                const progress = timestamp - start;
+                // EaseInOutCubic Easing
+                const ease = progress < duration / 2 
+                    ? 4 * progress * progress * progress / (duration * duration * duration) 
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                
+                window.scrollTo(0, startPosition + distance * ease);
+
+                if (progress < duration) {
+                    window.requestAnimationFrame(step);
+                }
+            }
+            window.requestAnimationFrame(step);
+        }
+
+        /* INITIALIZATION */
+        window.addEventListener('load', () => {
+            initSlider('desktop-slider', desktopHeroImages);
+            // Removed mobile slider init
+            setTimeout(() => { document.getElementById('loader').classList.add('-translate-y-full'); }, 1000);
+        });
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.remove('bg-transparent', 'text-white');
+                nav.classList.add('bg-white', 'text-black', 'shadow-sm');
+            } else {
+                nav.classList.add('bg-transparent', 'text-white');
+                nav.classList.remove('bg-white', 'text-black', 'shadow-sm');
+            }
+            document.querySelectorAll('.reveal-up').forEach(el => {
+                if(el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add('active');
+            });
+        });
+
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('-translate-x-full'); }
+
+        /* PRODUCT DATA */
+        const products = {
+            'p1': {
+                id: 'p1',
+                title: "The Lace Illusion Gown",
+                price: 4200,
+                priceStr: "$4,200",
+                description: "Crafted from fine Chantilly lace, this gown features an illusion neckline and hand-placed appliqué details. A silhouette that defines modern elegance.",
+                images: [
+                    "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_zbd9puzbd9puzbd9.png",
+                    "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_ga9pkfga9pkfga9p.png",
+                    "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_a49y8za49y8za49y.png"
+                ]
+            },
+            'p2': {
+                id: 'p2',
+                title: "Architectural Satin Gown",
+                price: 8900,
+                priceStr: "$8,900",
+                description: "A bold statement in ivory satin, featuring structured shoulders and a dramatic train designed for the modern bride who seeks timeless power.",
+                images: [
+                    "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_how82hhow82hhow8.png",
+                    "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_yq738xyq738xyq73.png"
+                ]
+            }
+        };
+
+        let currentProduct = null;
+        let currentImageIndex = 0;
+        let cart = [];
+
+        /* CART LOGIC */
+        function addToBag() {
+            if(!currentProduct) return;
+            cart.push(currentProduct);
+            updateCartUI();
+            closeProductModal();
+            setTimeout(toggleCart, 300); // Open sidebar after adding
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const btn = document.getElementById('nav-cart-btn');
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total');
+            const desktopCount = document.getElementById('cart-count-desktop');
+
+            // 1. Toggle Button Visibility
+            if (cart.length > 0) {
+                btn.classList.remove('hidden-btn');
+                btn.classList.add('visible-btn');
+            } else {
+                btn.classList.add('hidden-btn');
+                btn.classList.remove('visible-btn');
+                document.getElementById('cart-sidebar').classList.add('translate-x-full');
+            }
+
+            // 2. Update Counts & Total
+            desktopCount.innerText = cart.length;
+            
+            let total = 0;
+            let html = '';
+            
+            cart.forEach((item, index) => {
+                total += item.price;
+                html += `
+                    <div class="flex gap-4 animate-[fadeIn_0.3s_ease-out]">
+                        <img src="${item.images[0]}" class="w-16 h-20 object-cover border border-gray-100" alt="${item.title}">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-serif text-sm w-3/4">${item.title}</h4>
+                                <button onclick="removeFromCart(${index})" class="text-xs text-gray-400 hover:text-black"><i data-lucide="x" class="w-4 h-4"></i></button>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-1 uppercase">Size: 38</p>
+                            <p class="text-sm font-medium mt-2">${item.priceStr}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            totalEl.innerText = "$" + total.toLocaleString();
+            
+            lucide.createIcons(); // Refresh icons in cart
+        }
+
+        function toggleCart() {
+            if(cart.length === 0) return; // Prevent opening if empty via console/hack
+            const sidebar = document.getElementById('cart-sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+
+        /* MODAL LOGIC */
+        function openProductModal(id) {
+            currentProduct = products[id];
+            currentImageIndex = 0;
+            updateModalContent();
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function updateModalContent() {
+            if(!currentProduct) return;
+            document.getElementById('modal-img').src = currentProduct.images[currentImageIndex];
+            document.getElementById('modal-title').innerText = currentProduct.title;
+            document.getElementById('modal-price').innerText = currentProduct.priceStr;
+            document.getElementById('modal-desc').innerText = currentProduct.description;
+            
+            const dotsContainer = document.getElementById('modal-dots');
+            dotsContainer.innerHTML = currentProduct.images.map((_, i) => `
+                <div class="w-1.5 h-1.5 rounded-full transition-colors ${i === currentImageIndex ? 'bg-black' : 'bg-gray-300'}"></div>
+            `).join('');
+        }
+
+        function nextImage() {
+            if(!currentProduct) return;
+            currentImageIndex = (currentImageIndex + 1) % currentProduct.images.length;
+            updateModalContent();
+        }
+
+        function prevImage() {
+            if(!currentProduct) return;
+            currentImageIndex = (currentImageIndex - 1 + currentProduct.images.length) % currentProduct.images.length;
+            updateModalContent();
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
