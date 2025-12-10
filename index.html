@@ -54,14 +54,6 @@
         .reveal-up { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal-up.active { opacity: 1; transform: translateY(0); }
 
-        .hero-img {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            object-fit: cover; object-position: top center;
-            opacity: 0; transform: scale(1.1);
-            transition: opacity 2.0s ease-in-out, transform 10s ease-out;
-        }
-        .hero-img.active { opacity: 1; transform: scale(1); }
-
         .btn-magnetic { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         .btn-magnetic:active { transform: scale(0.95); }
 
@@ -91,6 +83,11 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-left: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        /* Iframe styling for videos */
+        iframe {
+            pointer-events: none;
         }
     </style>
 </head>
@@ -161,16 +158,24 @@
 
     <!-- Hero Section -->
     <header class="relative h-screen-dvh w-full overflow-hidden bg-black text-white">
-        <!-- Desktop Slider (Visible on md and up) -->
-        <div id="desktop-slider" class="absolute inset-0 hidden md:block"></div>
+        
+        <!-- Desktop Video Background (md and up) -->
+        <div class="absolute inset-0 hidden md:block pointer-events-none">
+            <iframe 
+                src="https://imagekit.io/player/embed/p78ewpzv2/aHR0cHM6Ly9hc3NldHMuZ3Jvay5jb20vdXNlcnMvZjMzMTZhYzUtZDlhZC00YWI1LWIyYmUtOWUyN2NhYmY0NDJhL2dlbmVyYXRlZC8yMjIyNDNjNC03MDM2LTQ1OWMtYmM1Yi05Y2Q5ZjNhZDgyNWYvZ2VuZXJhdGVkX3ZpZGVvX2hkLm1wNA==.mp4?controls=false&autoplay=true&loop=true&muted=true&background=%23000000&thumbnail=https%3A%2F%2Fik.imagekit.io%2Fp78ewpzv2%2FaHR0cHM6Ly9hc3NldHMuZ3Jvay5jb20vdXNlcnMvZjMzMTZhYzUtZDlhZC00YWI1LWIyYmUtOWUyN2NhYmY0NDJhL2dlbmVyYXRlZC8yMjIyNDNjNC03MDM2LTQ1OWMtYmM1Yi05Y2Q5ZjNhZDgyNWYvZ2VuZXJhdGVkX3ZpZGVvX2hkLm1wNA%3D%3D.mp4%2Fik-thumbnail.jpg%3FupdatedAt%3D1765404610052" 
+                class="w-full h-full object-cover scale-110" 
+                title="DEZZI Desktop Campaign" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen">
+            </iframe>
+        </div>
         
         <!-- Mobile Video Background (Visible only on mobile) -->
         <div class="absolute inset-0 md:hidden pointer-events-none">
-            <!-- Added muted=true and loop=true to URL to ensure autoplay works on smartphones -->
             <iframe 
                 src="https://imagekit.io/player/embed/p78ewpzv2/DEZZI%20FASHION/grok-video-bccf80fd-45aa-4a7e-924a-229c543e43b6%20(1).mp4?controls=false&autoplay=true&loop=true&muted=true&background=%23000000&updatedAt=1765393566273" 
                 class="w-full h-full object-cover scale-110" 
-                title="DEZZI Campaign" 
+                title="DEZZI Mobile Campaign" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen">
             </iframe>
@@ -341,31 +346,6 @@
     <script>
         lucide.createIcons();
 
-        /* SLIDER LOGIC */
-        const desktopHeroImages = [
-            "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_a49y8za49y8za49y.png",
-            "https://ik.imagekit.io/p78ewpzv2/DEZZI%20FASHION/Gemini_Generated_Image_how82hhow82hhow8.png"
-        ];
-        
-        // Removed mobileHeroImages array as we are using video
-
-        function initSlider(containerId, images) {
-            const container = document.getElementById(containerId);
-            images.forEach((src, i) => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.className = `hero-img ${i === 0 ? 'active' : ''}`;
-                container.appendChild(img);
-            });
-            let currentSlide = 0;
-            const slides = container.children;
-            setInterval(() => {
-                slides[currentSlide].classList.remove('active');
-                currentSlide = (currentSlide + 1) % slides.length;
-                slides[currentSlide].classList.add('active');
-            }, 6000);
-        }
-
         /* CUSTOM SMOOTH SCROLL */
         function customScrollTo(targetId) {
             const target = document.getElementById(targetId);
@@ -395,8 +375,6 @@
 
         /* INITIALIZATION */
         window.addEventListener('load', () => {
-            initSlider('desktop-slider', desktopHeroImages);
-            // Removed mobile slider init
             setTimeout(() => { document.getElementById('loader').classList.add('-translate-y-full'); }, 1000);
         });
 
@@ -557,3 +535,5 @@
     </script>
 </body>
 </html>
+
+
