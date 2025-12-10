@@ -84,10 +84,34 @@
             backdrop-filter: blur(20px);
             border-left: 1px solid rgba(0,0,0,0.05);
         }
-        
-        /* Iframe styling for videos */
-        iframe {
+
+        /* --- VIDEO BACKGROUND FULLSCREEN FIX --- */
+        .video-background {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             pointer-events: none;
+        }
+
+        /* If aspect ratio is wider than 16:9, fit to width (crop top/bottom) 
+           100vw width, auto height
+        */
+        @media (min-aspect-ratio: 16/9) {
+            .video-background {
+                width: 100vw;
+                height: 56.25vw; /* 100 * 9 / 16 */
+            }
+        }
+
+        /* If aspect ratio is taller than 16:9, fit to height (crop sides) 
+           100vh height, auto width
+        */
+        @media (max-aspect-ratio: 16/9) {
+            .video-background {
+                height: 100vh;
+                width: 177.78vh; /* 100 * 16 / 9 */
+            }
         }
     </style>
 </head>
@@ -114,7 +138,7 @@
             <div class="flex items-center space-x-6">
                 <button class="hidden lg:block text-[11px] font-bold uppercase tracking-widest hover:text-dezzi-gold">Search</button>
                 
-                <!-- Cart Button (Initially Hidden) -->
+                <!-- Cart Button -->
                 <button id="nav-cart-btn" class="hover:text-dezzi-gold transition-colors hidden-btn" onclick="toggleCart()">
                     <span class="lg:hidden relative">
                         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
@@ -160,10 +184,11 @@
     <header class="relative h-screen-dvh w-full overflow-hidden bg-black text-white">
         
         <!-- Desktop Video Background (md and up) -->
-        <div class="absolute inset-0 hidden md:block pointer-events-none">
+        <!-- Using custom class 'video-background' for aspect ratio fix -->
+        <div class="absolute inset-0 hidden md:block pointer-events-none overflow-hidden">
             <iframe 
                 src="https://imagekit.io/player/embed/p78ewpzv2/aHR0cHM6Ly9hc3NldHMuZ3Jvay5jb20vdXNlcnMvZjMzMTZhYzUtZDlhZC00YWI1LWIyYmUtOWUyN2NhYmY0NDJhL2dlbmVyYXRlZC8yMjIyNDNjNC03MDM2LTQ1OWMtYmM1Yi05Y2Q5ZjNhZDgyNWYvZ2VuZXJhdGVkX3ZpZGVvX2hkLm1wNA==.mp4?controls=false&autoplay=true&loop=true&muted=true&background=%23000000&thumbnail=https%3A%2F%2Fik.imagekit.io%2Fp78ewpzv2%2FaHR0cHM6Ly9hc3NldHMuZ3Jvay5jb20vdXNlcnMvZjMzMTZhYzUtZDlhZC00YWI1LWIyYmUtOWUyN2NhYmY0NDJhL2dlbmVyYXRlZC8yMjIyNDNjNC03MDM2LTQ1OWMtYmM1Yi05Y2Q5ZjNhZDgyNWYvZ2VuZXJhdGVkX3ZpZGVvX2hkLm1wNA%3D%3D.mp4%2Fik-thumbnail.jpg%3FupdatedAt%3D1765404610052" 
-                class="w-full h-full object-cover scale-110" 
+                class="video-background" 
                 title="DEZZI Desktop Campaign" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen">
